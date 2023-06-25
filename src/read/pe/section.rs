@@ -336,7 +336,7 @@ impl pe::ImageSectionHeader {
     /// The size of the range will be the minimum of the file size and virtual size.
     pub fn pe_file_range(&self) -> (u32, u32) {
         // Pointer and size will be zero for uninitialized data; we don't need to validate this.
-        let offset = self.pointer_to_raw_data.get(LE);
+        let offset = self.virtual_address.get(LE);
         let size = cmp::min(self.virtual_size.get(LE), self.size_of_raw_data.get(LE));
         (offset, size)
     }
@@ -406,7 +406,7 @@ impl pe::ImageSectionHeader {
     ) -> Option<(&'data [u8], u32)> {
         let section_va = self.virtual_address.get(LE);
         let offset = va.checked_sub(section_va)?;
-        let (section_offset, section_size) = self.pe_file_range();
+        let (section_offset, section_size) = self.pe_range();
         // Address must be within section (and not at its end).
         if offset < section_size {
             let section_data = data
